@@ -199,6 +199,7 @@ F --> G[First Differences]
 G --> H[Robustness Checks]
 H --> I[Long Difference]
 I --> J[Business Conclusions]
+```
 
 ---
 
