@@ -1,120 +1,139 @@
-Methodology
-Why this methodology?
+# Methodology
 
-The objective of this project is not simply to estimate whether AI personalization is associated with higher sales, but to approximate a causal effect using observational panel data.
+## Why this methodology?
 
-Because stores differ substantially in size, customer base, location, and management quality, a simple cross-sectional regression would produce biased estimates. The analysis therefore combines several panel-data estimators, each addressing a different source of bias.
+The objective of this project is not simply to estimate whether AI personalization is associated with higher sales, but to approximate a causal relationship using observational panel data.
 
-Rather than relying on a single model, the project compares multiple specifications and evaluates the robustness of the estimated effect across different assumptions.
+Retail stores differ substantially in characteristics such as size, customer base, location, and management quality. Consequently, a simple cross-sectional regression would likely produce biased estimates.
 
-Fixed Effects (FE)
+To address these challenges, this project combines multiple panel-data estimators, each designed to reduce a different source of bias. Rather than relying on a single specification, the analysis compares several econometric approaches and evaluates the robustness of the estimated AI effect across alternative samples and model assumptions.
 
-The main specification uses a two-way Fixed Effects model with:
+---
 
-Store fixed effects
-Month fixed effects
+## Fixed Effects (FE)
 
-This approach estimates how changes in AI adoption within the same store relate to changes in sales while controlling for permanent differences across stores and common monthly shocks affecting the entire retail network.
+The primary specification is a two-way Fixed Effects model including:
 
-Examples of factors removed by store fixed effects include:
+- Store fixed effects
+- Month fixed effects
 
-Store size
-Location
-Local customer demographics
-Long-run management quality
+This estimator measures how changes in AI adoption **within the same store** are associated with changes in sales while controlling for:
 
-Month fixed effects account for common events such as:
+### Store Fixed Effects
 
-Seasonality
-Inflation
-Holidays
-Network-wide promotions
+These remove permanent store characteristics such as:
 
-Because the identification comes from within-store variation over time, the estimated effect is substantially more informative than a simple comparison between different stores.
+- Store size
+- Geographic location
+- Local customer demographics
+- Long-run management quality
 
-First Differences (FD)
+### Month Fixed Effects
 
-Although Fixed Effects remove time-invariant heterogeneity, they may still be sensitive to slowly evolving trends.
+These capture common shocks affecting every store simultaneously, including:
+
+- Seasonality
+- Inflation
+- Holidays
+- Company-wide promotions
+- Macroeconomic conditions
+
+Because identification relies on within-store variation over time, the Fixed Effects estimator provides a substantially stronger basis for causal interpretation than simple comparisons across different stores.
+
+---
+
+## First Differences (FD)
+
+Although Fixed Effects eliminate time-invariant heterogeneity, they may still be influenced by slowly evolving trends.
 
 For this reason, the project also estimates First Difference models.
 
-Instead of comparing sales levels, the FD estimator compares month-to-month changes.
+Instead of comparing sales levels, the FD estimator compares **month-to-month changes**.
 
-This transformation naturally removes all store-specific characteristics that remain constant over time and focuses entirely on short-run movements.
+Differencing removes all store characteristics that remain constant over time and focuses entirely on short-run movements.
 
-The FD specification also includes:
+The specification includes:
 
-contemporaneous AI adoption changes
-lagged changes
-lead changes
+- Current changes in AI adoption
+- One-month lag
+- Two-month lag
+- One-month lead
 
-This dynamic structure allows the analysis to examine:
+These dynamic terms help evaluate:
 
-whether the impact appears immediately,
-whether effects accumulate over time,
-whether changes in sales precede AI adoption (possible reverse causality).
+- Whether the impact appears immediately
+- Whether effects accumulate over time
+- Whether sales begin changing before AI adoption (possible reverse causality)
 
-To avoid introducing artificial observations, first differences are calculated only between consecutive calendar months.
+To avoid creating artificial observations, first differences are calculated **only between consecutive calendar months**, ensuring that differences are never computed across reporting gaps.
 
-Store-Specific Trends
+---
 
-One First Difference specification additionally includes store-specific trends.
+## Store-Specific Trends
 
-Retail stores rarely evolve identically.
+One FD specification additionally incorporates store-specific trends.
 
-Some stores continuously improve because of renovations, stronger local demand or better management, while others gradually decline.
+Retail stores rarely evolve in exactly the same way. Some improve steadily because of renovations, stronger local demand, or better management, while others experience gradual declines.
 
-Allowing each store to follow its own linear trend reduces the risk that these long-run movements are incorrectly attributed to AI adoption.
+Allowing each store to follow its own linear trend reduces the likelihood that these long-term movements are incorrectly attributed to AI adoption.
 
-The comparison between the standard FD model and the trend-adjusted specification provides an additional robustness check.
+Comparing this specification with the standard FD model provides an additional robustness check.
 
-Reduced-T Balanced Panel
+---
 
-The original dataset is unbalanced because stores enter and exit the reporting system at different times.
+## Reduced-T Balanced Panel
 
-To evaluate whether missing observations influence the results, the project constructs a balanced panel by selecting the 12-month calendar window that contains the largest number of fully observed stores.
+The original dataset is naturally **unbalanced**, since stores begin and end reporting at different points in time.
 
-This design improves data consistency and simplifies comparisons across stores, although it sacrifices part of the available time dimension.
+To evaluate whether missing observations influence the results, a balanced panel is constructed by selecting the **12-month calendar window** that maximizes the number of fully observed stores.
 
-Reduced-N Sample
+This approach improves data consistency and comparability across stores, although it reduces the available time dimension.
 
-A second robustness exercise keeps the original time dimension but excludes stores with poor reporting quality.
+---
+
+## Reduced-N Sample
+
+A second robustness exercise keeps the original time span while improving data quality.
 
 Only stores with very few missing reporting months are retained.
 
-Compared with the main sample, this approach prioritizes data quality over sample size.
+Compared with the main sample, this strategy prioritizes reporting quality over sample size, allowing the analysis to assess whether the estimated effects depend on stores with incomplete reporting histories.
 
-The resulting estimates indicate whether the conclusions depend on stores with incomplete reporting histories.
+---
 
-Long Difference
+## Long Difference
 
-The Long Difference estimator compares only the first and the last month of the selected balanced window.
+The Long Difference estimator compares only the first and last month of the selected balanced window.
 
-Rather than using every monthly observation, it summarizes each store's overall change during the period.
+Rather than using every monthly observation, it summarizes each store's overall change during the analysis period.
 
-This approach removes permanent store characteristics in a simple and transparent way, making it useful as an initial benchmark.
+This approach removes permanent store characteristics in a simple and intuitive way, making it a useful first-pass estimator.
 
-However, because intermediate dynamics are ignored, Long Difference generally provides less informative causal evidence than panel estimators that exploit the full time series.
+However, because intermediate dynamics are ignored, Long Difference generally provides weaker causal evidence than estimators that exploit the full panel structure.
 
-Robustness Strategy
+---
 
-Instead of relying on a single econometric specification, the project evaluates consistency across several complementary estimators.
+## Robustness Strategy
+
+Instead of relying on a single econometric specification, the project evaluates whether conclusions remain consistent across several complementary estimators.
 
 The final comparison includes:
 
-Main Fixed Effects model
-First Differences
-First Differences with store-specific trends
-Fixed Effects on the balanced sample
-First Differences on the balanced sample
-Fixed Effects on the high-quality reporting sample
-First Differences on the high-quality reporting sample
-Long Difference estimator
+- Fixed Effects (Main Sample)
+- First Differences (FD-A)
+- First Differences with Store-Specific Trends (FD-B)
+- Fixed Effects (Reduced-T)
+- FD-B (Reduced-T)
+- Fixed Effects (Reduced-N)
+- FD-B (Reduced-N)
+- Long Difference (Reduced-T)
 
-Consistent estimates across these alternative specifications increase confidence that the estimated relationship is not driven by a particular modeling choice or sample construction.
+Consistency across these alternative specifications increases confidence that the estimated relationship is not driven by a particular modeling choice or sample construction.
 
-Business Perspective
+---
 
-From a business standpoint, the objective is not to maximize predictive accuracy but to estimate whether increased use of AI personalization genuinely contributes to higher sales after accounting for store heterogeneity, reporting quality and time effects.
+## Business Perspective
 
-The combination of multiple panel-data estimators provides a substantially stronger empirical basis for decision-making than a single regression model, allowing management to assess whether observed sales improvements are likely to reflect a true operational impact of AI adoption rather than differences across stores or reporting artifacts.
+From a business perspective, the objective is not to maximize predictive accuracy, but to estimate whether increased adoption of AI personalization genuinely contributes to higher retail sales after accounting for store heterogeneity, reporting quality, and common time effects.
+
+By combining multiple panel-data estimators and robustness checks, the analysis provides stronger evidence for decision-making than a single regression model, helping distinguish genuine operational impact from spurious correlations.
