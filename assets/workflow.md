@@ -1,13 +1,13 @@
 ```mermaid
 flowchart TD
 
-A[Raw Data] --> B[Merge Datasets]
-B --> C[Data Cleaning]
-C --> D[Analysis Sample]
-D --> E[Exploratory Analysis]
-E --> F[Fixed Effects Model]
-F --> G[First Differences]
-G --> H[Robustness Checks]
-H --> I[Long Difference]
-I --> J[Business Conclusions]
+A[Raw CSV Files] --> B[Merge Store Data]
+B --> C[Construct Analysis Sample]
+C --> D[Exploratory Data Analysis]
+D --> E[Fixed Effects Estimation]
+E --> F[First Differences Estimation]
+F --> G[Reduced-T & Reduced-N Robustness]
+G --> H[Long Difference Estimation]
+H --> I[Model Comparison]
+I --> J[Business Recommendations]
 ```
