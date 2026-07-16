@@ -1,0 +1,15 @@
+__pycache__/
+
+.ipynb_checkpoints/
+
+*.pyc
+
+.env
+
+.vscode/
+
+.idea/
+
+.DS_Store
+
+outputs/report/*.pdf
