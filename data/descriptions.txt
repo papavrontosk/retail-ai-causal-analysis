@@ -1,0 +1,33 @@
+Files:
+- store_info.csv: σταθερά χαρακτηριστικά κάθε καταστήματος
+- algo_rollout.csv: ημερομηνία rollout του personalization engine και πληροφορίες pilot wave
+- store_month_metrics.csv: μηνιαία λειτουργικά και εμπορικά στοιχεία στο επίπεδο καταστήματος-μήνα
+
+store_info.csv
+store_id: μοναδικό αναγνωριστικό καταστήματος
+region: γεωγραφική περιφέρεια
+format: τύπος καταστήματος
+floor_space: τετραγωνικά μέτρα πώλησης
+digital_readiness: δείκτης ψηφιακής ετοιμότητας καταστήματος
+manager_quality: δείκτης ποιότητας διοίκησης καταστήματος
+opening_month: μήνας ανοίγματος καταστήματος
+closing_month: τελευταίος μήνας λειτουργίας στο dataset
+
+algo_rollout.csv
+store_id: μοναδικό αναγνωριστικό καταστήματος
+treated: ένδειξη αν το κατάστημα υιοθέτησε το personalization engine
+pilot_wave: κύμα rollout (0 για never-treated)
+go_live_month: μήνας ενεργοποίησης του engine
+manual_override: ένδειξη για το αν έγινε managerial override στο rollout plan
+
+store_month_metrics.csv
+store_id: μοναδικό αναγνωριστικό καταστήματος
+month: μήνας παρατήρησης
+report_flag: 1 αν το κατάστημα έστειλε πλήρες μηνιαίο report, 0 αλλιώς
+net_sales_k: καθαρές μηνιαίες πωλήσεις σε χιλιάδες ευρώ
+ln_sales: φυσικός λογάριθμος των καθαρών πωλήσεων
+ai_share: ποσοστό (%) συναλλαγών που πέρασαν από personalization engine
+web_visits_k: επισκέψεις στο e-shop/app που αποδίδονται στο κατάστημα, σε χιλιάδες
+competitor_price: τοπικός δείκτης τιμών ανταγωνιστών (100 = σημείο αναφοράς)
+ad_spend_k: τοπική ψηφιακή διαφημιστική δαπάνη σε χιλιάδες ευρώ
+stockout_rate: ποσοστό (%) SKU-days με stockout μέσα στον μήνα
