@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personalization Engine & Retail Sales – Panel Data Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --primary: #1e3a5f;
+    --accent: #2563eb;
+    --light: #f0f4f8;
+    --border: #cbd5e1;
+    --green: #16a34a;
+    --orange: #d97706;
+    --red: #dc2626;
+    --text: #1e293b;
+    --muted: #64748b;
+    --code-bg: #f8fafc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); background: #f9fafb; font-size: 15px; line-height: 1.7; }
+  .page-header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); color: white; padding: 48px 40px 36px; }
+  .page-header h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 8px; }
+  .page-header .meta { opacity: 0.85; font-size: 0.9rem; margin-top: 12px; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 32px 24px; }
+  .section { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 32px; margin-bottom: 28px; }
+  .section-title { font-size: 1.25rem; font-weight: 700; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .q-badge { background: var(--accent); color: white; border-radius: 20px; padding: 2px 12px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+  h3 { font-size: 1rem; font-weight: 600; color: var(--primary); margin: 20px 0 10px; }
+  h4 { font-size: 0.9rem; font-weight: 600; color: var(--muted); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  p { margin-bottom: 12px; color: var(--text); }
+  .code-block { background: var(--code-bg); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 16px; font-family: 'Courier New', monospace; font-size: 0.82rem; line-height: 1.6; overflow-x: auto; margin: 14px 0; white-space: pre; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 18px 0; }
+  .stat-card { background: var(--light); border-radius: 8px; padding: 16px 20px; border-left: 4px solid var(--accent); }
+  .stat-card .val { font-size: 1.8rem; font-weight: 800; color: var(--primary); line-height: 1; }
+  .stat-card .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 14px 0; }
+  th { background: var(--primary); color: white; padding: 9px 13px; text-align: left; font-size: 0.8rem; font-weight: 600; }
+  td { padding: 8px 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tr:hover td { background: #eff6ff; }
+  .sig { color: var(--green); font-weight: 700; }
+  .insig { color: var(--muted); }
+  .highlight-row td { background: #eff6ff !important; font-weight: 600; }
+  .note { background: #fefce8; border: 1px solid #fde68a; border-radius: 6px; padding: 12px 16px; font-size: 0.85rem; color: #78350f; margin: 12px 0; }
+  .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 14px 18px; margin: 14px 0; font-size: 0.88rem; }
+  .warn-box { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 14px 18px; margin: 14px 0; font-size: 0.88rem; }
+  .chart-wrap { position: relative; height: 320px; margin: 20px 0; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media(max-width:700px) { .two-col { grid-template-columns: 1fr; } }
+  .rank-badge { display: inline-block; background: var(--primary); color: white; border-radius: 50%; width: 26px; height: 26px; text-align: center; line-height: 26px; font-size: 0.82rem; font-weight: 700; }
+  .rank-1 { background: #d97706; }
+  .rank-2 { background: #92400e; }
+  .rank-3 { background: #4b5563; }
+  .memo-box { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1.5px solid #7dd3fc; border-radius: 10px; padding: 28px 32px; }
+  .memo-box .memo-header { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .memo-box h3 { color: var(--primary); margin-bottom: 14px; font-size: 1.1rem; }
+  .memo-box p { margin-bottom: 10px; font-size: 0.93rem; }
+  .formula { background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; font-family: 'Courier New', monospace; font-size: 0.9rem; margin: 12px 0; text-align: center; color: var(--primary); font-weight: 600; }
+  .effect-chip { display: inline-block; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; }
+  .effect-pos { background: #dcfce7; color: #15803d; }
+  .effect-neg { background: #fee2e2; color: #b91c1c; }
+  ul, ol { margin: 10px 0 10px 22px; }
+  li { margin-bottom: 6px; }
+  .divider { border: none; border-top: 2px solid var(--border); margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>📊 Personalization Engine &amp; Retail Sales: A Panel Data Analysis</h1>
+  <div class="meta">
+    <strong>Student:</strong> Konstantinos Papavrontos &nbsp;|&nbsp;
+    <strong>Course:</strong> Panel Data Econometrics &nbsp;|&nbsp;
+    <strong>Dataset:</strong> 90 stores, 2022–2024 &nbsp;|&nbsp;
+    <strong>Research question:</strong> Does ai_share causally increase net sales?
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ============================================================ Q1 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q1</span> Building the Analysis Sample</div>
+
+  <h3>Data Merging</h3>
+  <p>The three source files are merged on <code>store_id</code>, producing one long-format panel of store-month observations.</p>
+  <div class="code-block">store_info  : 90 stores × 8 variables  (static characteristics)
+algo_rollout: 90 stores × 5 variables  (treatment & rollout info)
+metrics     : 2,945 obs × 10 variables (monthly outcomes &amp; controls)
+
+Merged on store_id → 2,945 store-month observations</div>
+
+  <h3>Sample Construction Steps</h3>
+  <ol>
+    <li><strong>Operating window filter:</strong> Keep only observations where <code>opening_month ≤ month ≤ closing_month</code>. <em>Retained: 2,945 obs / 90 stores</em> (all within window).</li>
+    <li><strong>Remove non-reporting months:</strong> Drop rows with <code>report_flag = 0</code>. <em>Retained: 2,308 obs / 90 stores.</em></li>
+    <li><strong>Minimum coverage filter:</strong> Keep only stores with ≥ 20 reported months. <em>Retained: 2,167 obs / 82 stores.</em></li>
+    <li><strong>Treated-store pre/post balance:</strong> For treated stores, require ≥ 5 reported months before <em>and</em> ≥ 5 reported months after <code>go_live_month</code>. Never-treated stores pass unconditionally. <em>Retained: 2,053 obs / 77 stores.</em></li>
+  </ol>
+
+  <div class="code-block"># Strict treatment-balance check (applied per treated store only)
+def check_treated_balance(grp):
+    if grp['treated'].iloc[0] == 0: return True          # never-treated: keep
+    go_live = grp['go_live_month'].iloc[0]
+    if pd.isna(go_live): return False
+    before = (grp['month'] &lt; go_live).sum()
+    after  = (grp['month'] &gt;= go_live).sum()
+    return (before &gt;= 5) and (after &gt;= 5)
+
+df = df.groupby('store_id').filter(check_treated_balance)</div>
+
+  <h3>Analysis Sample Summary</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">77</div><div class="lbl">Stores in sample</div></div>
+    <div class="stat-card"><div class="val">2,053</div><div class="lbl">Total observations</div></div>
+    <div class="stat-card"><div class="val">53</div><div class="lbl">Treated stores</div></div>
+    <div class="stat-card"><div class="val">24</div><div class="lbl">Never-treated stores</div></div>
+    <div class="stat-card"><div class="val">20–32</div><div class="lbl">Months per store (range)</div></div>
+  </div>
+
+  <div class="note"><strong>Panel balance:</strong> The panel is <strong>unbalanced</strong>. Stores have between 20 and 32 reported months, reflecting differences in opening dates, closing dates, and intermittent missing reports that were removed. No two stores share the exact same set of calendar months, so a balanced panel identity cannot hold.</div>
+
+  <h3>Handling the Unbalanced Panel</h3>
+  <p>The unbalanced structure arises from three sources: (i) staggered store opening and closing dates, (ii) months with <code>report_flag = 0</code> excluded by construction, and (iii) the pre/post balance requirement that removes treated stores entering too late or too early in the dataset. In all subsequent regressions, fixed-effects and first-difference estimators naturally accommodate unbalanced panels. Month fixed effects absorb aggregate time trends regardless of which stores contribute observations to each calendar month.</p>
+</div>
+
+<!-- ============================================================ Q2 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q2</span> Time Trends by Treatment Status Group</div>
+
+  <p>Each store-month observation is assigned one of three mutually exclusive status labels:</p>
+  <ul>
+    <li><strong>Never treated</strong> – stores that never adopted the personalization engine (<code>treated = 0</code>).</li>
+    <li><strong>Not yet live</strong> – treated stores in calendar months before their <code>go_live_month</code>.</li>
+    <li><strong>Live</strong> – treated stores in months ≥ <code>go_live_month</code>.</li>
+  </ul>
+
+  <div class="two-col">
+    <div>
+      <h3>Chart 1 – Mean ln(Sales) by Group</h3>
+      <div class="chart-wrap"><canvas id="chartLnSales"></canvas></div>
+    </div>
+    <div>
+      <h3>Chart 2 – Mean ai_share (%) by Group</h3>
+      <div class="chart-wrap"><canvas id="chartAiShare"></canvas></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <h3>Why Pooled Time Patterns Alone Do Not Establish Causality</h3>
+  <p>The charts show a visually compelling pattern: once stores go live on the engine, their mean ln(sales) trend accelerates compared to the never-treated group. However, this observation is insufficient for a causal claim for the following reasons:</p>
+  <ol>
+    <li><strong>Selection bias:</strong> The rollout was not randomised. Stores selected into (or selected for) treatment may have better managers, higher digital readiness, or be located in faster-growing markets—all factors correlated with both ai_share and sales growth.</li>
+    <li><strong>Pre-existing trends:</strong> The "Not yet live" group already has somewhat higher ln(sales) than "Never treated" before go-live, suggesting that treated stores were growing faster even before treatment.</li>
+    <li><strong>Confounding time shocks:</strong> Calendar-time events (seasonality, competitor actions, advertising campaigns) affect all groups simultaneously. Without a control group untouched by these shocks, the group trajectories conflate treatment effects with common time trends.</li>
+    <li><strong>Compositional changes:</strong> As months pass, the "Not yet live" group shrinks and the "Live" group grows. The rising mean in the "Live" group partly reflects a changing composition of stores, not just within-store changes.</li>
+  </ol>
+  <p>Establishing causality requires isolating within-store, within-time variation using techniques such as fixed effects, first differences, or credible instrumental variables—all of which are implemented in Questions 3–8.</p>
+</div>
+
+<!-- ============================================================ Q3 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q3</span> Two-Way Fixed Effects (Levels)</div>
+
+  <div class="formula">ln(sales<sub>it</sub>) = α<sub>i</sub> + λ<sub>t</sub> + β ai_share<sub>it</sub> + γ₁ web_visits<sub>it</sub> + γ₂ competitor_price<sub>it</sub> + γ₃ ad_spend<sub>it</sub> + γ₄ stockout_rate<sub>it</sub> + u<sub>it</sub></div>
+
+  <div class="code-block"># Within estimator via linearmodels PanelOLS
+fe_model = PanelOLS(dep, exog, entity_effects=True, time_effects=True)
+fe_res = fe_model.fit(cov_type='clustered', cluster_entity=True)
+# Clustered standard errors at the store level</div>
+
+  <h3>Estimation Sample</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">77</div><div class="lbl">Stores used</div></div>
+    <div class="stat-card"><div class="val">2,053</div><div class="lbl">Observations</div></div>
+    <div class="stat-card"><div class="val">2-way FE</div><div class="lbl">Store &amp; Month FE</div></div>
+  </div>
+
+  <h3>Results</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error (clustered)</th><th>t-stat</th><th>p-value</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td><strong>ai_share</strong></td><td>0.002519</td><td>0.000102</td><td>24.7</td><td class="sig">&lt;0.001</td><td>Main variable of interest</td></tr>
+      <tr><td>web_visits_k</td><td>0.005290</td><td>0.000458</td><td>11.6</td><td class="sig">&lt;0.001</td><td>More web traffic → higher sales</td></tr>
+      <tr><td>competitor_price</td><td>0.004957</td><td>0.000546</td><td>9.1</td><td class="sig">&lt;0.001</td><td>Higher rival prices → own sales ↑</td></tr>
+      <tr><td>ad_spend_k</td><td>0.012453</td><td>0.001114</td><td>11.2</td><td class="sig">&lt;0.001</td><td>Ad spend → sales</td></tr>
+      <tr><td>stockout_rate</td><td>−0.015732</td><td>0.000537</td><td>−29.3</td><td class="sig">&lt;0.001</td><td>Stockouts reduce sales</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Interpretation of ai_share</h3>
+  <div class="info-box">
+    <strong>Coefficient:</strong> β = 0.002519 on ai_share (measured as a percentage, 0–100).<br><br>
+    <strong>A 10 percentage-point increase in ai_share is associated with an increase in ln(sales) of 0.0252, which corresponds to approximately <span style="color:var(--green);font-weight:700;">+2.52%</span> in net sales.</strong><br><br>
+    Holding store and month effects constant, moving from, say, 30% to 40% of transactions processed through the personalization engine is associated with €2,520 more monthly sales per €100k baseline.
+  </div>
+
+  <div class="warn-box">
+    <strong>Causal caveat:</strong> FE removes time-invariant store heterogeneity (e.g., permanent quality differences) and common time shocks, but cannot rule out time-varying confounders correlated with ai_share—for example, stores that expanded their digital investment on multiple dimensions simultaneously. The coefficient should be interpreted as a conditional association rather than a cleanly identified causal effect.
+  </div>
+</div>
+
+<!-- ============================================================ Q4 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q4</span> First-Difference Regressions (FD-A and FD-B)</div>
+
+  <h3>Construction of the Strict FD Dataset</h3>
+  <p>Following the assignment requirement, first differences are computed <em>only</em> when the previous available observation for the same store is exactly the preceding calendar month. Gaps in the panel (due to <code>report_flag = 0</code> removals or store entry/exit) are respected: no differences are computed across calendar gaps.</p>
+
+  <div class="code-block">for each store s:
+  sort observations by month
+  compute month_num = year*12 + month
+  for consecutive pairs (t-1, t):
+      if month_num[t] - month_num[t-1] == 1:  ← strictly one month apart
+          compute Δln_sales, Δai_share, ΔW
+      else:
+          skip (gap exists)
+
+# Lags/leads of Δai_share also computed only across consecutive FD observations
+# Δai_share_{t-1}, Δai_share_{t-2}, Δai_share_{t+1} require same strict consecutiveness</div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">73</div><div class="lbl">Stores in FD sample</div></div>
+    <div class="stat-card"><div class="val">834</div><div class="lbl">FD observations</div></div>
+    <div class="stat-card"><div class="val">4</div><div class="lbl">Stores lost (insufficient consecutive months)</div></div>
+  </div>
+
+  <div class="formula">Δln(sales<sub>it</sub>) = λ<sub>t</sub> + β₀Δai<sub>it</sub> + β₁Δai<sub>i,t−1</sub> + β₂Δai<sub>i,t−2</sub> + ρ₁Δai<sub>i,t+1</sub> + δ'ΔW<sub>it</sub> + e<sub>it</sub></div>
+
+  <h3>FD-A: Month Fixed Effects Only</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td>Δai_share (β₀, contemporaneous)</td><td>0.001153</td><td>0.000296</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δai_share<sub>t−1</sub> (β₁, 1-month lag)</td><td>0.000460</td><td>0.000255</td><td class="insig">0.071</td></tr>
+      <tr><td>Δai_share<sub>t−2</sub> (β₂, 2-month lag)</td><td>0.000343</td><td>0.000304</td><td class="insig">0.259</td></tr>
+      <tr><td>Δai_share<sub>t+1</sub> (ρ₁, 1-month lead)</td><td>0.000116</td><td>0.000228</td><td class="insig">0.611</td></tr>
+      <tr><td>Δweb_visits_k</td><td>0.004693</td><td>0.000519</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δcompetitor_price</td><td>0.005525</td><td>0.000862</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δad_spend_k</td><td>0.013870</td><td>0.001366</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δstockout_rate</td><td>−0.015807</td><td>0.000759</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>FD-A 3-month cumulative effect (β₀ + β₁ + β₂):</strong> 0.001957 &nbsp;|&nbsp; SE: 0.000301<br>
+    → 10pp increase in ai_share: <strong class="sig">+1.96% cumulative effect on ln(sales)</strong><br>
+    Estimation sample: 73 stores, 834 observations
+  </div>
+
+  <h3>FD-B: Month Fixed Effects + Store Linear Trends</h3>
+  <p>Store dummies in the first-differenced equation absorb store-specific linear time trends in the levels equation, making the design more robust to trending unobservables.</p>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td>Δai_share (β₀, contemporaneous)</td><td>0.001048</td><td>0.000371</td><td class="sig">0.005</td></tr>
+      <tr><td>Δai_share<sub>t−1</sub> (β₁, 1-month lag)</td><td>0.000366</td><td>0.000317</td><td class="insig">0.249</td></tr>
+      <tr><td>Δai_share<sub>t−2</sub> (β₂, 2-month lag)</td><td>0.000279</td><td>0.000313</td><td class="insig">0.372</td></tr>
+      <tr><td>Δai_share<sub>t+1</sub> (ρ₁, 1-month lead)</td><td>0.000031</td><td>0.000302</td><td class="insig">0.917</td></tr>
+      <tr><td>Δweb_visits_k</td><td>0.004622</td><td>0.000549</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δcompetitor_price</td><td>0.005582</td><td>0.000936</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δad_spend_k</td><td>0.013656</td><td>0.001435</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δstockout_rate</td><td>−0.015883</td><td>0.000788</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>FD-B 3-month cumulative effect (β₀ + β₁ + β₂):</strong> 0.001692 &nbsp;|&nbsp; SE: 0.000481<br>
+    → 10pp increase in ai_share: <strong class="sig">+1.69% cumulative effect on ln(sales)</strong><br>
+    Estimation sample: 73 stores, 834 observations
+  </div>
+
+  <h3>Comparison FD-A vs FD-B</h3>
+  <p>Adding store-specific linear trends (FD-B) reduces the cumulative effect from 1.96% to 1.69%—a modest downward revision of about 14%. This suggests that part of the FD-A estimate was attributable to store-level upward trends correlated with ai_share adoption. The effect remains statistically significant and economically meaningful in both specifications.</p>
+</div>
+
+<!-- ============================================================ Q5 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q5</span> Reduced-T Balanced Sample (12-Month Window)</div>
+
+  <p>Following the lecture logic on unbalanced panels, we search for the 12-month consecutive calendar window that maximises the number of stores with complete coverage across all 12 months.</p>
+
+  <div class="code-block">all_months = sorted(df['month'].unique())      # all calendar months in main sample
+
+best_window, best_count = None, 0
+for i in range(len(all_months) - 11):
+    window = all_months[i:i+12]
+    # Verify that these 12 months are truly consecutive
+    nums = [m.year*12 + m.month for m in window]
+    if nums[-1] - nums[0] != 11: continue
+    stores_in = df[df['month'].isin(window)].groupby('store_id')['month'].count()
+    n_full = (stores_in == 12).sum()      # stores with all 12 months
+    if n_full &gt; best_count:
+        best_count = n_full
+        best_window = window
+
+df_rt = df[df['store_id'].isin(best_stores) &amp; df['month'].isin(best_window)]</div>
+
+  <h3>Selected Window</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">Mar 2023 – Feb 2024</div><div class="lbl">Optimal 12-month window</div></div>
+    <div class="stat-card"><div class="val">12</div><div class="lbl">Fully observed stores</div></div>
+    <div class="stat-card"><div class="val">6</div><div class="lbl">Treated stores</div></div>
+    <div class="stat-card"><div class="val">6</div><div class="lbl">Never-treated stores</div></div>
+    <div class="stat-card"><div class="val">144</div><div class="lbl">Observations (12×12)</div></div>
+  </div>
+
+  <div class="note">The window March 2023 – February 2024 was selected because it falls in the middle of the observation period, capturing both the pre-live and live phases for treated stores in the rollout cohorts. The resulting balanced sub-panel has exactly 12 observations per store, with an equal split between treated and never-treated groups.</div>
+</div>
+
+<!-- ============================================================ Q6 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q6</span> FE and FD-B on the Reduced-T Sample</div>
+
+  <h3>FE Regression – Reduced-T</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">12</div><div class="lbl">Stores</div></div>
+    <div class="stat-card"><div class="val">144</div><div class="lbl">Observations</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td><strong>ai_share</strong></td><td>0.002340</td><td>0.000572</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>web_visits_k</td><td>0.002923</td><td>0.002810</td><td class="insig">0.300</td></tr>
+      <tr><td>competitor_price</td><td>0.007678</td><td>0.003166</td><td class="sig">0.017</td></tr>
+      <tr><td>ad_spend_k</td><td>0.012126</td><td>0.004368</td><td class="sig">0.006</td></tr>
+      <tr><td>stockout_rate</td><td>−0.012933</td><td>0.002274</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>10pp effect (FE, Reduced-T):</strong> +2.34% &nbsp;|&nbsp; 12 stores, 144 obs
+  </div>
+
+  <h3>FD-B Regression – Reduced-T</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">12</div><div class="lbl">Stores</div></div>
+    <div class="stat-card"><div class="val">96</div><div class="lbl">Observations</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td>Δai_share (β₀)</td><td>−0.000361</td><td>0.000458</td><td class="insig">0.430</td></tr>
+      <tr><td>Δai_share<sub>t−1</sub> (β₁)</td><td>−0.000326</td><td>0.000598</td><td class="insig">0.585</td></tr>
+      <tr><td>Δai_share<sub>t−2</sub> (β₂)</td><td>0.000920</td><td>0.000261</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δai_share<sub>t+1</sub> (ρ₁, lead)</td><td>−0.000373</td><td>0.000688</td><td class="insig">0.588</td></tr>
+      <tr><td>Δweb_visits_k</td><td>0.004895</td><td>0.001941</td><td class="sig">0.012</td></tr>
+      <tr><td>Δcompetitor_price</td><td>0.002574</td><td>0.002954</td><td class="insig">0.384</td></tr>
+      <tr><td>Δad_spend_k</td><td>0.019886</td><td>0.005219</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δstockout_rate</td><td>−0.015307</td><td>0.003011</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>FD-B 3-month cumulative effect (Reduced-T):</strong> 0.000233 &nbsp;|&nbsp; SE: 0.000700 (not significant)<br>
+    → 10pp increase in ai_share: <strong>+0.23%</strong> (statistically indistinguishable from zero)<br>
+    Estimation sample: 12 stores, 96 observations
+  </div>
+
+  <h3>Comparison with Main Sample</h3>
+  <table>
+    <thead><tr><th>Estimator</th><th>10pp effect (ln_sales)</th><th>Stores</th><th>Obs</th><th>Comment</th></tr></thead>
+    <tbody>
+      <tr><td>FE – Main</td><td class="sig">+2.52%</td><td>77</td><td>2,053</td><td>Significant, precise</td></tr>
+      <tr><td>FE – Reduced-T</td><td class="sig">+2.34%</td><td>12</td><td>144</td><td>Consistent, wide CI</td></tr>
+      <tr><td>FD-B – Main</td><td class="sig">+1.69%</td><td>73</td><td>834</td><td>Robust to store trends</td></tr>
+      <tr><td>FD-B – Reduced-T</td><td class="insig">+0.23%</td><td>12</td><td>96</td><td>Imprecise, unstable</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What Do We Gain and Lose by Reducing T?</h3>
+  <p><strong>Gains:</strong> (1) A perfectly balanced panel eliminates any attrition bias or selection driven by which stores survive long enough to report. (2) Comparisons across estimators are cleaner because every store contributes the same number of months. (3) Avoids the compositional change problem whereby month fixed effects in the unbalanced panel are identified off different store samples at different dates.</p>
+  <p><strong>Losses:</strong> (1) Drastic loss of sample size—from 77 stores to 12. This severely reduces statistical power and makes estimates unstable, as seen in the FD-B results. (2) External validity is limited to the narrow window and the atypical subset of stores that remained fully observed. (3) The 12-month window may straddle the go-live period differently across stores, confounding the dynamic profile. In sum, the reduced-T approach buys panel purity at a steep cost in precision and generalisability.</p>
+</div>
+
+<!-- ============================================================ Q7 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q7</span> Reduced-N Sample (Fewer Missing Reports)</div>
+
+  <h3>Sample Construction</h3>
+  <p>Starting from the main analysis sample (Q1), we restrict to stores whose number of missing reports within their full operating window is at most 4.</p>
+  <div class="code-block"># Compute missing_reports per store (within operating window, before report_flag filter)
+missing_per_store = (
+    all_within[all_within['report_flag'] == 0]
+    .groupby('store_id').size()
+    .rename('missing_reports')
+)
+# Stores with no missing obs assigned 0
+mr = missing_per_store.reindex(main_stores, fill_value=0)
+stores_rn = mr[mr &lt;= 4].index         # retain stores with &lt;= 4 missing months
+df_rn = df_main[df_main['store_id'].isin(stores_rn)]</div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">21</div><div class="lbl">Stores in Reduced-N</div></div>
+    <div class="stat-card"><div class="val">616</div><div class="lbl">Observations</div></div>
+    <div class="stat-card"><div class="val">8</div><div class="lbl">Treated stores</div></div>
+    <div class="stat-card"><div class="val">13</div><div class="lbl">Never-treated stores</div></div>
+  </div>
+
+  <h3>FE Regression – Reduced-N</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">21</div><div class="lbl">Stores</div></div>
+    <div class="stat-card"><div class="val">616</div><div class="lbl">Observations</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td><strong>ai_share</strong></td><td>0.002690</td><td>0.000175</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>web_visits_k</td><td>0.004795</td><td>0.000847</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>competitor_price</td><td>0.005109</td><td>0.000913</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>ad_spend_k</td><td>0.013221</td><td>0.001902</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>stockout_rate</td><td>−0.016529</td><td>0.001045</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box"><strong>10pp effect (FE, Reduced-N):</strong> +2.69% &nbsp;|&nbsp; 21 stores, 616 obs</div>
+
+  <h3>FD-B Regression – Reduced-N</h3>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="val">21</div><div class="lbl">Stores</div></div>
+    <div class="stat-card"><div class="val">341</div><div class="lbl">Observations</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td>Δai_share (β₀)</td><td>0.001659</td><td>0.000378</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δai_share<sub>t−1</sub> (β₁)</td><td>0.000898</td><td>0.000719</td><td class="insig">0.212</td></tr>
+      <tr><td>Δai_share<sub>t−2</sub> (β₂)</td><td>−0.000038</td><td>0.000345</td><td class="insig">0.912</td></tr>
+      <tr><td>Δai_share<sub>t+1</sub> (ρ₁, lead)</td><td>−0.000219</td><td>0.000428</td><td class="insig">0.608</td></tr>
+      <tr><td>Δweb_visits_k</td><td>0.004716</td><td>0.000944</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δcompetitor_price</td><td>0.005583</td><td>0.001433</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δad_spend_k</td><td>0.011539</td><td>0.002053</td><td class="sig">&lt;0.001</td></tr>
+      <tr><td>Δstockout_rate</td><td>−0.018011</td><td>0.000937</td><td class="sig">&lt;0.001</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>FD-B 3-month cumulative effect (Reduced-N):</strong> 0.002518 &nbsp;|&nbsp; SE: 0.000695<br>
+    → 10pp increase in ai_share: <strong class="sig">+2.52% cumulative effect</strong><br>
+    Estimation sample: 21 stores, 341 observations
+  </div>
+
+  <h3>Comparison: Main vs Reduced-T vs Reduced-N</h3>
+  <table>
+    <thead><tr><th>Estimator</th><th>10pp Effect</th><th>Stores</th><th>Obs</th></tr></thead>
+    <tbody>
+      <tr><td>FE – Main</td><td>+2.52%</td><td>77</td><td>2,053</td></tr>
+      <tr><td>FE – Reduced-T</td><td>+2.34%</td><td>12</td><td>144</td></tr>
+      <tr><td>FE – Reduced-N</td><td>+2.69%</td><td>21</td><td>616</td></tr>
+      <tr><td>FD-B – Main</td><td>+1.69%</td><td>73</td><td>834</td></tr>
+      <tr class="highlight-row"><td>FD-B – Reduced-N</td><td>+2.52%</td><td>21</td><td>341</td></tr>
+      <tr><td>FD-B – Reduced-T</td><td>+0.23% (n.s.)</td><td>12</td><td>96</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Which Strategy Is More Convincing: Reduce T or Reduce N?</h3>
+  <p><strong>Preferred strategy: Reduce N (miss ≤ 4).</strong> Reducing N retains a longer time horizon (20–32 months), which is essential for identifying dynamic effects in FD and preserving enough between-period variation for time fixed effects. The quality restriction (missing ≤ 4) removes stores whose missingness may be endogenous (e.g., stores that stop reporting during difficult months), thus reducing measurement bias without sacrificing the temporal depth needed for causal identification. The FD-B reduced-N estimate (2.52%) is close to the FE reduced-N (2.69%) and broadly consistent with the main sample estimates, suggesting robustness. By contrast, reducing T to 12 months collapses the sample to only 12 stores, causing extreme imprecision and fragility, as evidenced by the sign-changing and insignificant FD-B reduced-T coefficients.</p>
+</div>
+
+<!-- ============================================================ Q8 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q8</span> Long Difference Estimation (Reduced-T Sample)</div>
+
+  <h3>Construction</h3>
+  <p>Using only the first month (March 2023) and the last month (February 2024) of the selected 12-month window, we compute long differences for each of the 12 stores:</p>
+  <div class="formula">Δ<sup>LD</sup>x<sub>i</sub> = x<sub>i, Feb 2024</sub> − x<sub>i, Mar 2023</sub></div>
+  <p>This yields one observation per store. The long-difference regression is estimated by OLS without clustering (N = 12):</p>
+  <div class="formula">Δ<sup>LD</sup>ln(sales<sub>i</sub>) = α + β Δ<sup>LD</sup>ai_share<sub>i</sub> + δ' Δ<sup>LD</sup>W<sub>i</sub> + ε<sub>i</sub></div>
+
+  <h3>Results</h3>
+  <table>
+    <thead><tr><th>Variable</th><th>Coefficient</th><th>Std. Error</th><th>t-stat</th><th>p-value</th></tr></thead>
+    <tbody>
+      <tr class="highlight-row"><td><strong>Δ<sup>LD</sup> ai_share</strong></td><td>0.003556</td><td>0.000719</td><td>4.95</td><td class="sig">0.003</td></tr>
+      <tr><td>Δ<sup>LD</sup> web_visits_k</td><td>0.013481</td><td>0.005248</td><td>2.57</td><td class="sig">0.042</td></tr>
+      <tr><td>Δ<sup>LD</sup> competitor_price</td><td>0.006362</td><td>0.012963</td><td>0.49</td><td class="insig">0.641</td></tr>
+      <tr><td>Δ<sup>LD</sup> ad_spend_k</td><td>0.009165</td><td>0.019044</td><td>0.48</td><td class="insig">0.647</td></tr>
+      <tr><td>Δ<sup>LD</sup> stockout_rate</td><td>−0.041863</td><td>0.010585</td><td>−3.95</td><td class="sig">0.007</td></tr>
+    </tbody>
+  </table>
+  <div class="info-box">
+    <strong>10pp effect (Long Difference, Reduced-T):</strong> +3.56%<br>
+    <strong>Stores in regression:</strong> 12 (one observation per store)
+  </div>
+
+  <h3>Long Difference vs FE and FD: A Comparison</h3>
+  <table>
+    <thead><tr><th>Method</th><th>10pp Effect</th><th>Basis</th></tr></thead>
+    <tbody>
+      <tr><td>Long Difference (Reduced-T)</td><td>+3.56%</td><td>Start-to-end change, 12 stores</td></tr>
+      <tr><td>FE (Reduced-T)</td><td>+2.34%</td><td>Within variation, all 12 months</td></tr>
+      <tr><td>FD-B (Reduced-T)</td><td>+0.23% (n.s.)</td><td>Month-to-month changes</td></tr>
+      <tr><td>FE (Main)</td><td>+2.52%</td><td>Full panel, 77 stores</td></tr>
+      <tr><td>FD-B (Main)</td><td>+1.69%</td><td>Full FD panel, 73 stores</td></tr>
+    </tbody>
+  </table>
+
+  <p>The long difference estimate (3.56%) is larger than the FE and FD estimates from the same reduced-T sample, and considerably larger than the main-sample FD-B. As the lecture notes, the long difference is a useful <em>first pass</em> because it sweeps away measurement noise in intermediate months and focuses on the total accumulated change. However, it is typically a weaker causal design for three reasons:</p>
+  <ol>
+    <li><strong>No control for intermediate confounders:</strong> Any event that happened between March 2023 and February 2024 and that is correlated with both ai_share expansion and sales growth gets folded into the estimate. FD and FE models, by using month-by-month variation, can include month fixed effects that absorb time-varying aggregate shocks.</li>
+    <li><strong>Cross-sectional identification only:</strong> With only 12 observations in a cross-section, the long difference relies entirely on between-store variation in the 11-month change in ai_share. This is more vulnerable to selection bias (stores that expanded ai_share faster may be systematically different).</li>
+    <li><strong>Tiny sample:</strong> With N = 12, standard errors are unreliable, inference is fragile, and OLS cannot be clustered. The apparent precision in the t-statistic is misleading.</li>
+  </ol>
+</div>
+
+<!-- ============================================================ Q9 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q9</span> Dynamic Analysis: Pre-Trends, Causality, and Specification Sensitivity</div>
+
+  <h3>1. Evidence on Pre-Trends and Reverse Causality</h3>
+  <p>The one-period lead (ρ₁ = Δai_share<sub>t+1</sub>) in both FD-A and FD-B is small and statistically insignificant:</p>
+  <ul>
+    <li><strong>FD-A:</strong> ρ₁ = 0.000116, p = 0.611</li>
+    <li><strong>FD-B:</strong> ρ₁ = 0.000031, p = 0.917</li>
+  </ul>
+  <p>This is the key diagnostic for pre-trends and reverse causality. A large, significant positive lead coefficient would indicate either: (a) sales start rising <em>before</em> ai_share increases (anticipation effects or reverse causality—managers roll out the engine in stores that are already improving), or (b) a spurious pre-existing trend is driving both. The insignificant lead in both specifications is reassuring: there is no evidence that sales move ahead of ai_share changes. This supports the interpretation of the contemporaneous coefficient as reflecting a genuine, at-least-partly-causal response rather than a pre-trend.</p>
+
+  <h3>2. Immediate or Lagged Dynamics?</h3>
+  <p>The contemporaneous coefficient (β₀) is the largest and most precisely estimated in both specifications. The one-period lag (β₁) is positive in both FD-A and FD-B but only marginally significant in FD-A (p = 0.071). The two-period lag (β₂) is positive but insignificant. This pattern suggests:</p>
+  <ul>
+    <li>Most of the effect of ai_share on sales is <strong>contemporaneous</strong>: personalisation works quickly, likely because it directly affects conversion rates and basket size within the same month.</li>
+    <li>There is a modest but decaying delayed component—consistent with a brief customer habit-formation or re-engagement effect over the following month or two.</li>
+    <li>The 3-month cumulative effect is approximately 50–60% larger than the contemporaneous effect alone (0.00196 vs 0.00115 in FD-A), indicating that fully capturing the effect requires including the lag structure.</li>
+  </ul>
+
+  <h3>3. Does Adding Store-Specific Trends Change the Estimate?</h3>
+  <p>Going from FD-A to FD-B (adding store dummies), the cumulative effect decreases from 1.96% to 1.69%—a reduction of about 14%. This downward revision is modest and statistically compatible with sampling variation, but it is consistent with the hypothesis that treated stores had mildly upward-trending sales independently of the algorithm rollout. FD-B is the more conservative and theoretically defensible specification.</p>
+
+  <h3>4. Better Design or Over-Control?</h3>
+  <p>Adding store-specific linear trends (FD-B) is an improvement over FD-A if: treated stores had systematically different underlying sales trends that could bias FD-A upward. The 14% reduction in the coefficient suggests this is a real concern, not negligible, but also not severe enough to fully explain away the effect.</p>
+  <p>However, there is a risk of <em>over-control</em>: if the algorithm genuinely caused store-level trend changes (e.g., by permanently shifting customer behaviour), then absorbing store trends would partial out part of the true causal effect. Given the gradual, ramp-up nature of ai_share adoption (from 0% to 60–90% over 12–18 months), this concern is legitimate. The "true" effect likely lies between FD-A and FD-B—around 1.7–2.0% per 10pp—and we prefer FD-B as the conservative lower bound.</p>
+</div>
+
+<!-- ============================================================ Q10 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q10</span> Final Comparative Table and Reliability Ranking</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Estimator &amp; Sample</th>
+        <th>10pp Effect on Sales</th>
+        <th>Stores</th>
+        <th>Obs</th>
+        <th>Main Strength</th>
+        <th>Main Weakness</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight-row">
+        <td><span class="rank-badge rank-1">1</span></td>
+        <td>FD-B – Main sample</td>
+        <td><span class="effect-chip effect-pos">+1.69%</span></td>
+        <td>73</td><td>834</td>
+        <td>Removes store-level trends; pre-trend test passed; largest FD sample</td>
+        <td>Loses 4 stores vs FE; dynamic controls reduce power</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge rank-2">2</span></td>
+        <td>FD-A – Main sample</td>
+        <td><span class="effect-chip effect-pos">+1.96%</span></td>
+        <td>73</td><td>834</td>
+        <td>Pre-trend test passed; controls for common time shocks; large sample</td>
+        <td>Does not absorb store-specific linear trends</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge rank-3">3</span></td>
+        <td>FE – Main sample</td>
+        <td><span class="effect-chip effect-pos">+2.52%</span></td>
+        <td>77</td><td>2,053</td>
+        <td>Largest sample; removes time-invariant store heterogeneity; most efficient</td>
+        <td>Cannot control for time-varying confounders; no pre-trend test</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge">4</span></td>
+        <td>FD-B – Reduced-N</td>
+        <td><span class="effect-chip effect-pos">+2.52%</span></td>
+        <td>21</td><td>341</td>
+        <td>Clean reporting data; reduces attrition bias; pre-trend negative</td>
+        <td>Small sample; may select on specific store types</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge">5</span></td>
+        <td>FE – Reduced-N</td>
+        <td><span class="effect-chip effect-pos">+2.69%</span></td>
+        <td>21</td><td>616</td>
+        <td>Cleaner data than main FE; consistent coefficient</td>
+        <td>Smaller N; potential selection of low-missingness stores</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge">6</span></td>
+        <td>Long Difference – Reduced-T</td>
+        <td><span class="effect-chip effect-pos">+3.56%</span></td>
+        <td>12</td><td>12</td>
+        <td>Sweeps intermediate noise; simple transparent design</td>
+        <td>Cross-sectional only; very small N; no time controls; no pre-trend test</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge">7</span></td>
+        <td>FE – Reduced-T</td>
+        <td><span class="effect-chip effect-pos">+2.34%</span></td>
+        <td>12</td><td>144</td>
+        <td>Balanced panel; eliminates attrition; consistent point estimate</td>
+        <td>Only 12 stores; very wide confidence intervals; window selection is arbitrary</td>
+      </tr>
+      <tr>
+        <td><span class="rank-badge">8</span></td>
+        <td>FD-B – Reduced-T</td>
+        <td><span class="effect-chip effect-neg">+0.23% (n.s.)</span></td>
+        <td>12</td><td>96</td>
+        <td>Balanced design; most restrictive specification</td>
+        <td>Too few obs; completely imprecise; sign instability; unreliable inference</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note"><strong>Ranking rationale:</strong> Ranks 1–2 are the FD specifications on the main sample because they pass the pre-trend test and have the most credible causal identification strategy with adequate power. Rank 3 is the main FE, which has the largest sample but weaker causal claims. Ranks 4–5 are the reduced-N counterparts, which add data quality at the cost of sample size. Ranks 6–7 use the tiny 12-store window (reduced-T), making inference fragile. Rank 8 is the FD-B on reduced-T, which collapses to near-zero with wide standard errors—the worst of both restrictions combined.</div>
+</div>
+
+<!-- ============================================================ Q11 ============================================================ -->
+<div class="section">
+  <div class="section-title"><span class="q-badge">Q11</span> Executive Memo to the Chief Commercial Officer</div>
+
+  <div class="memo-box">
+    <div class="memo-header">Internal Memorandum — Confidential</div>
+    <h3>Re: Causal Impact of Personalization Engine on Store Sales</h3>
+    <table style="font-size:0.82rem;margin-bottom:12px">
+      <tr><td style="padding:2px 8px 2px 0"><strong>To:</strong></td><td>Chief Commercial Officer</td></tr>
+      <tr><td style="padding:2px 8px 2px 0"><strong>From:</strong></td><td>Konstantinos Papavrontos, Analytics</td></tr>
+      <tr><td style="padding:2px 8px 2px 0"><strong>Subject:</strong></td><td>Best estimate of personalization engine's effect on net sales</td></tr>
+    </table>
+
+    <p><strong>Best estimate.</strong> Our preferred specification—a first-difference regression with store-specific linear trends (FD-B) on the full 77-store panel—estimates that a 10 percentage-point increase in ai_share raises monthly net sales by approximately <strong>1.7%</strong> within three months. This figure represents a conservative lower bound; the simpler FD-A estimate suggests 2.0% and the FE estimate 2.5%. We recommend citing the FD-B range of 1.7–2.0% in external communications.</p>
+
+    <p><strong>Why this specification.</strong> FD-B controls for both store-specific permanent differences and store-specific growth trajectories, and it passes a pre-trend test: sales do not move ahead of ai_share changes, which would have signalled reverse causality. The main unbalanced panel (77 stores, 2,053 obs) gives the best statistical power, and sensitivity checks on cleaner sub-samples (reduced-N) are broadly consistent.</p>
+
+    <p><strong>Causal caveats.</strong> The rollout was not randomised—waves were assigned partly by management discretion. Stores that adopted early or received override decisions may differ systematically from late adopters in ways our controls cannot fully capture. The pre-trend check is reassuring but not conclusive proof of exogeneity. Additionally, ai_share measures transaction volume through the engine, not algorithm quality; some stores may have high ai_share simply because they defaulted all traffic through it without any genuine personalisation uplift.</p>
+
+    <p><strong>Sample strategy.</strong> We prefer the full unbalanced panel over the reduced-T (12 stores, 12 months) or reduced-N (21 stores) alternatives. The full panel provides the temporal depth and cross-store variation needed for credible identification. Reduced-T buys balance at the cost of near-zero statistical power. Reduced-N improves data quality marginally but excludes two-thirds of treated stores without strong justification. The full panel, with its strict FD and pre-trend diagnostics, remains the most informative design available with current data.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ============================================================ CHARTS ============================================================ -->
+<script>
+const months = ["2022-01","2022-02","2022-03","2022-04","2022-05","2022-06","2022-07","2022-08","2022-09","2022-10","2022-11","2022-12","2023-01","2023-02","2023-03","2023-04","2023-05","2023-06","2023-07","2023-08","2023-09","2023-10","2023-11","2023-12","2024-01","2024-02","2024-03","2024-04","2024-05","2024-06","2024-07","2024-08","2024-09","2024-10","2024-11","2024-12"];
+
+const lnData = {
+  "Never treated": [5.3714,5.3899,5.4537,5.381,5.3821,5.3934,5.4201,5.3976,5.4204,5.4184,5.46,5.4283,5.5035,5.4723,5.4946,5.4772,5.4388,5.4418,5.4496,5.4458,5.4677,5.4682,5.4743,5.528,5.5181,5.508,5.5733,5.5145,5.5093,5.5495,5.515,5.5151,5.5253,5.5483,5.5526,5.5995],
+  "Not yet live": [5.5216,5.5245,5.5097,5.5757,5.511,5.4942,5.4935,5.5006,5.5169,5.5088,5.5618,5.5374,5.5416,5.53,5.5701,5.5645,5.6201,5.6103,5.5997,5.551,5.5264,5.4822,5.5126,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  "Live": [null,null,null,null,null,null,null,null,5.4267,5.4338,5.4372,5.53,5.5647,5.6641,5.5728,5.6051,5.5803,5.5945,5.5635,5.6312,5.6323,5.6756,5.6743,5.707,5.7656,5.7818,5.7822,5.7853,5.7881,5.8077,5.7869,5.8006,5.8271,5.8176,5.8429,5.8762]
+};
+
+const aiData = {
+  "Never treated": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  "Not yet live": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,null,null,null,null,null,null,null,null,null,null,null,null,null],
+  "Live": [null,null,null,null,null,null,null,null,7.32,7.145,9.855,10.96,12.6157,17.2347,17.7027,20.8865,23.633,26.8789,31.9078,35.6561,40.4376,46.5142,46.6581,52.0649,55.2141,59.4265,63.5943,66.7849,71.3128,76.6014,78.6187,82.9537,85.1056,86.9519,88.1565,89.4089]
+};
+
+const colors = {
+  "Never treated": {line:'#64748b', bg:'rgba(100,116,139,0.1)'},
+  "Not yet live": {line:'#d97706', bg:'rgba(217,119,6,0.1)'},
+  "Live": {line:'#2563eb', bg:'rgba(37,99,235,0.1)'}
+};
+
+function makeChart(canvasId, dataObj, title, yLabel) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const datasets = Object.entries(dataObj).map(([label, data]) => ({
+    label, data,
+    borderColor: colors[label].line,
+    backgroundColor: colors[label].bg,
+    borderWidth: 2.5,
+    pointRadius: 2,
+    tension: 0.3,
+    spanGaps: false,
+    fill: false
+  }));
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels: months, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } },
+        title: { display: false }
+      },
+      scales: {
+        x: { ticks: { maxTicksLimit: 12, font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
+        y: { title: { display: true, text: yLabel, font: { size: 11 } }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+makeChart('chartLnSales', lnData, 'Mean ln(Sales)', 'Mean ln(Sales)');
+makeChart('chartAiShare', aiData, 'Mean ai_share (%)', 'Mean ai_share (%)');
+</script>
+
+</body>
+</html>
